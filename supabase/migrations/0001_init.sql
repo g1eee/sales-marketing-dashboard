@@ -139,3 +139,29 @@ create table design_requests (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Row Level Security.
+-- Policy this stage: any authenticated user may do everything; anon (the public
+-- key) gets nothing. Per-role restrictions can be layered on later.
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'brands', 'report_periods', 'global_daily', 'global_source',
+    'product_summary', 'product_detail', 'ads_summary', 'design_requests'
+  ] loop
+    execute format('alter table %I enable row level security;', t);
+    execute format(
+      'create policy %I on %I for all to authenticated using (true) with check (true);',
+      t || '_authenticated_all', t
+    );
+  end loop;
+end $$;
+
+-- Profiles: authenticated users can read all profiles (needed for nav/display)
+-- and update their own. Inserts happen via the security-definer trigger above.
+alter table profiles enable row level security;
+create policy profiles_select_authenticated on profiles
+  for select to authenticated using (true);
+create policy profiles_update_own on profiles
+  for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
