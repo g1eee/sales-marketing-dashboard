@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { StatCard } from "./stat-card";
 import { ExportButton } from "./export-button";
+import { Section } from "./section";
 import { pctChange } from "@/lib/analytics/compare";
 import { formatInt, formatPercent, formatRupiah } from "@/lib/analytics/format";
 import { toCsv } from "@/lib/analytics/csv";
@@ -112,90 +113,94 @@ export function IklanTab({ data }: { data: IklanData }) {
     .slice(0, 8);
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Biaya Iklan"
-          value={formatRupiah(current.biaya)}
-          delta={d(current.biaya, previous?.biaya)}
-        />
-        <StatCard
-          label="Omzet dari Iklan"
-          value={formatRupiah(current.omzet)}
-          delta={d(current.omzet, previous?.omzet)}
-        />
-        <StatCard
-          label="ROAS"
-          value={roasStr(current.roas)}
-          delta={d(num(current.roas), previous?.roas)}
-        />
-        <StatCard
-          label="ACOS"
-          value={formatPercent(current.acos)}
-          delta={d(num(current.acos), previous?.acos)}
-          invertDelta
-        />
-      </div>
+    <div className="space-y-8">
+      <Section title="Ringkasan Iklan">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Biaya Iklan"
+            value={formatRupiah(current.biaya)}
+            delta={d(current.biaya, previous?.biaya)}
+          />
+          <StatCard
+            label="Omzet dari Iklan"
+            value={formatRupiah(current.omzet)}
+            delta={d(current.omzet, previous?.omzet)}
+          />
+          <StatCard
+            label="ROAS"
+            value={roasStr(current.roas)}
+            delta={d(num(current.roas), previous?.roas)}
+          />
+          <StatCard
+            label="ACOS"
+            value={formatPercent(current.acos)}
+            delta={d(num(current.acos), previous?.acos)}
+            invertDelta
+          />
+        </div>
+      </Section>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="p-5 shadow-soft">
-          <h2 className="mb-4 font-heading text-base font-medium">
-            Funnel & Efisiensi
-          </h2>
-          <dl className="space-y-3">
-            {[
-              { k: "CTR (klik / tayang)", v: formatPercent(current.ctr) },
-              { k: "CVR (konversi / klik)", v: formatPercent(current.cvr) },
-              { k: "Total Klik", v: formatInt(current.klik) },
-              { k: "Total Tayang", v: formatInt(current.dilihat) },
-              { k: "Total Konversi", v: formatInt(current.konversi) },
-            ].map((s) => (
-              <div
-                key={s.k}
-                className="flex items-center justify-between gap-2 text-sm"
-              >
-                <dt className="text-muted-foreground">{s.k}</dt>
-                <dd className="font-mono tabular-nums">{s.v}</dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
-        <Card className="p-5 shadow-soft lg:col-span-2">
-          <h2 className="mb-3 font-heading text-base font-medium">
-            Perbandingan Mode Bidding
-          </h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mode</TableHead>
-                <TableHead className="text-right">Iklan</TableHead>
-                <TableHead className="text-right">Biaya</TableHead>
-                <TableHead className="text-right">Omzet</TableHead>
-                <TableHead className="text-right">ROAS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {modeRows.map((m) => (
-                <TableRow key={m.mode}>
-                  <TableCell className="font-medium">{m.mode}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
-                    {formatInt(m.n)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
-                    {formatRupiah(m.biaya)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
-                    {formatRupiah(m.omzet)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
-                    {roasStr(m.roas)}
-                  </TableCell>
-                </TableRow>
+      <Section title="Efisiensi & Mode Bidding">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="p-5 shadow-soft">
+            <h2 className="mb-4 font-heading text-base font-medium">
+              Funnel & Efisiensi
+            </h2>
+            <dl className="space-y-3">
+              {[
+                { k: "CTR (klik / tayang)", v: formatPercent(current.ctr) },
+                { k: "CVR (konversi / klik)", v: formatPercent(current.cvr) },
+                { k: "Total Klik", v: formatInt(current.klik) },
+                { k: "Total Tayang", v: formatInt(current.dilihat) },
+                { k: "Total Konversi", v: formatInt(current.konversi) },
+              ].map((s) => (
+                <div
+                  key={s.k}
+                  className="flex items-center justify-between gap-2 text-sm"
+                >
+                  <dt className="text-muted-foreground">{s.k}</dt>
+                  <dd className="font-mono tabular-nums">{s.v}</dd>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
+            </dl>
+          </Card>
+          <Card className="p-5 shadow-soft lg:col-span-2">
+            <h2 className="mb-3 font-heading text-base font-medium">
+              Perbandingan Mode Bidding
+            </h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mode</TableHead>
+                  <TableHead className="text-right">Iklan</TableHead>
+                  <TableHead className="text-right">Biaya</TableHead>
+                  <TableHead className="text-right">Omzet</TableHead>
+                  <TableHead className="text-right">ROAS</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {modeRows.map((m) => (
+                  <TableRow key={m.mode}>
+                    <TableCell className="font-medium">{m.mode}</TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatInt(m.n)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatRupiah(m.biaya)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatRupiah(m.omzet)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {roasStr(m.roas)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
+      </Section>
 
       <Card className="p-5 shadow-soft sm:p-6">
         <div className="mb-3 flex items-center justify-between gap-3">
