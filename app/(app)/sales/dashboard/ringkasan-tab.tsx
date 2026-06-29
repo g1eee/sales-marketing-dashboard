@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { RevenuePanel, type RevenueMetric } from "./revenue-panel";
+import { StatCard } from "./stat-card";
 import { PerformancePanel } from "./performance-panel";
 import { FunnelCard } from "./funnel-card";
 import { SourceChart } from "./source-chart";
@@ -90,6 +91,20 @@ export function RingkasanTab({
           statusLabel={statusLabel}
           compareLabel={compareLabel}
         />
+      </Section>
+
+      <Section title="Performa">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {metrics.slice(1).map((mt) => (
+            <StatCard
+              key={mt.key}
+              label={mt.label}
+              value={mt.value}
+              delta={mt.delta}
+              series={mt.series}
+            />
+          ))}
+        </div>
       </Section>
 
       <Section title="Performance per Channel">
