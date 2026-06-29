@@ -97,6 +97,10 @@ export async function saveUpload(
       await supabase.from("global_source").insert(
         preview.global.sources.map((s) => ({ period_id: periodId, ...s })),
       );
+    if (preview.global.channels.length)
+      await supabase.from("global_channel").insert(
+        preview.global.channels.map((c) => ({ period_id: periodId, ...c })),
+      );
   }
   if (preview.product) {
     if (preview.product.summary.length)

@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { RevenuePanel, type RevenueMetric } from "./revenue-panel";
+import { PerformancePanel } from "./performance-panel";
 import { FunnelCard } from "./funnel-card";
 import { SourceChart } from "./source-chart";
 import { Section } from "./section";
@@ -89,6 +90,17 @@ export function RingkasanTab({
           statusLabel={statusLabel}
           compareLabel={compareLabel}
         />
+      </Section>
+
+      <Section title="Performance per Channel">
+        {data.channels.length > 0 ? (
+          <PerformancePanel channels={data.channels} />
+        ) : (
+          <div className="flex min-h-24 items-center justify-center rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            Upload ulang data Shopee untuk melihat performa per channel
+            (impresi/klik/CTR/CVR).
+          </div>
+        )}
       </Section>
 
       <Section title="Funnel & Sumber Penjualan">

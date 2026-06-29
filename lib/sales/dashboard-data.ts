@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { pickStatus, sumDailyTotals, type Totals } from "@/lib/analytics/aggregate";
+import { pickStatus, sumDailyTotals } from "@/lib/analytics/aggregate";
 import { compareTotals, type TotalsComparison } from "@/lib/analytics/compare";
 import { aggregateProducts, type ProductAgg } from "@/lib/analytics/product";
 import { aggregateAds, type AdsAgg } from "@/lib/analytics/ads";
 import type {
   GlobalDailyRow,
+  GlobalChannelRow,
   SourceRow,
   ProductSummaryRow,
   AdsRow,
@@ -46,7 +47,7 @@ async function fetchDaily(
   const { data } = await supabase
     .from("global_daily")
     .select(
-      "date, status, total_penjualan, total_pesanan, penjualan_per_pesanan, produk_diklik, total_pengunjung, konversi, pesanan_dibatalkan",
+      "date, status, total_penjualan, total_pesanan, penjualan_per_pesanan, produk_diklik, total_pengunjung, konversi, pesanan_dibatalkan, pembeli_baru, pembeli_lama, potensi_pembeli",
     )
     .eq("period_id", periodId)
     .order("date");
@@ -77,10 +78,36 @@ async function fetchAds(supabase: DB, periodId: string): Promise<AdsRow[]> {
 }
 
 // ---------- Ringkasan (Global) ----------
+export interface FunnelStage {
+  omzet: number;
+  pesanan: number;
+  konversi: number | null;
+  baru: number | null;
+  lama: number | null;
+  potensi: number | null;
+}
+
 export interface Funnel {
-  dibuat: Totals;
-  siap_dikirim: Totals;
-  dibayar: Totals;
+  dibuat: FunnelStage;
+  siap_dikirim: FunnelStage;
+  dibayar: FunnelStage;
+}
+
+function buildStage(
+  daily: GlobalDailyRow[],
+  status: GlobalDailyRow["status"],
+): FunnelStage {
+  const rows = pickStatus(daily, status);
+  const t = sumDailyTotals(rows);
+  const b = rows[0]; // buyer totals are stamped constant across the status' rows
+  return {
+    omzet: t.omzet,
+    pesanan: t.pesanan,
+    konversi: t.konversi,
+    baru: b?.pembeli_baru ?? null,
+    lama: b?.pembeli_lama ?? null,
+    potensi: b?.potensi_pembeli ?? null,
+  };
 }
 
 export interface RingkasanData {
@@ -88,6 +115,7 @@ export interface RingkasanData {
   comparison: TotalsComparison;
   daily: GlobalDailyRow[]; // selected status only (for the trend chart)
   sources: SourceRow[];
+  channels: GlobalChannelRow[];
   funnel: Funnel;
 }
 
@@ -107,15 +135,21 @@ export async function getRingkasanData(opts: {
     previous = sumDailyTotals(pickStatus(prev, opts.status));
   }
 
-  const { data: sources } = await supabase
-    .from("global_source")
-    .select("source, penjualan")
-    .eq("period_id", opts.periodId);
+  const [{ data: sources }, { data: channels }] = await Promise.all([
+    supabase
+      .from("global_source")
+      .select("source, penjualan")
+      .eq("period_id", opts.periodId),
+    supabase
+      .from("global_channel")
+      .select("channel, penjualan, dilihat, diklik, ctr, cvr, pesanan, pembeli")
+      .eq("period_id", opts.periodId),
+  ]);
 
   const funnel: Funnel = {
-    dibuat: sumDailyTotals(pickStatus(daily, "dibuat")),
-    siap_dikirim: sumDailyTotals(pickStatus(daily, "siap_dikirim")),
-    dibayar: sumDailyTotals(pickStatus(daily, "dibayar")),
+    dibuat: buildStage(daily, "dibuat"),
+    siap_dikirim: buildStage(daily, "siap_dikirim"),
+    dibayar: buildStage(daily, "dibayar"),
   };
 
   return {
@@ -123,6 +157,7 @@ export async function getRingkasanData(opts: {
     comparison: compareTotals(current, previous),
     daily: pickStatus(daily, opts.status),
     sources: (sources ?? []) as SourceRow[],
+    channels: (channels ?? []) as GlobalChannelRow[],
     funnel,
   };
 }

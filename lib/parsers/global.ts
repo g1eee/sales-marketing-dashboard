@@ -1,6 +1,11 @@
 import { parseIDNumber, parseIDPercent } from "@/lib/parsers/numbers";
 import { parsePeriodString, parseDMY } from "@/lib/parsers/period";
-import type { ParsedGlobal, GlobalDailyRow, SourceRow } from "@/lib/parsers/types";
+import type {
+  ParsedGlobal,
+  GlobalDailyRow,
+  GlobalChannelRow,
+  SourceRow,
+} from "@/lib/parsers/types";
 
 const STATUS_BY_SHEET: Record<string, GlobalDailyRow["status"]> = {
   "pesanan dibuat": "dibuat",
@@ -16,9 +21,62 @@ const SOURCE_COLUMNS: { header: string; key: string }[] = [
   { header: "penjualan dari iklan shopee", key: "iklan_shopee" },
 ];
 
+// Per-channel total rows in the "Asal Penjualan" sheet (rasio 100%).
+const CHANNEL_MAP: Record<string, string> = {
+  "halaman produk": "halaman_produk",
+  "live penjual": "live",
+  "video penjual": "video",
+  affiliate: "affiliate",
+};
+
 function isDailyHeader(row: string[]): boolean {
   const t = row.map((c) => (c ?? "").toLowerCase());
   return t[0] === "tanggal" && t.some((c) => c.includes("total penjualan"));
+}
+
+function round(n: number | null): number | null {
+  return n === null ? null : Math.round(n);
+}
+
+/** Parse the per-channel total rows from an "Asal Penjualan" sheet. */
+function parseChannels(rows: string[][]): GlobalChannelRow[] {
+  const headerIdx = rows.findIndex((r) =>
+    r.some((c) => (c ?? "").toLowerCase().includes("jumlah produk dilihat")),
+  );
+  if (headerIdx < 0) return [];
+  const header = rows[headerIdx].map((c) => (c ?? "").toLowerCase());
+  const idx = (needle: string) => header.findIndex((h) => h.includes(needle));
+  const col = {
+    penjualan: idx("penjualan (idr)"),
+    dilihat: idx("jumlah produk dilihat"),
+    diklik: idx("produk diklik"),
+    pesanan: idx("total pesanan"),
+    ctr: idx("persentase klik"),
+    cvr: idx("tingkat konversi pesanan"),
+    pembeli: idx("total pembeli"),
+  };
+  const at = (row: string[], i: number) => (i >= 0 ? (row[i] ?? "") : "");
+
+  const out: GlobalChannelRow[] = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    const channel = CHANNEL_MAP[(row[0] ?? "").toLowerCase().trim()];
+    if (!channel || seen.has(channel)) continue;
+    // The channel total row has a Penjualan value; the section-header row is blank.
+    if (String(at(row, col.penjualan)).trim() === "") continue;
+    seen.add(channel);
+    out.push({
+      channel,
+      penjualan: parseIDNumber(at(row, col.penjualan)) ?? 0,
+      dilihat: parseIDNumber(at(row, col.dilihat)),
+      diklik: parseIDNumber(at(row, col.diklik)),
+      ctr: parseIDPercent(at(row, col.ctr)),
+      cvr: parseIDPercent(at(row, col.cvr)),
+      pesanan: round(parseIDNumber(at(row, col.pesanan))),
+      pembeli: parseIDNumber(at(row, col.pembeli)),
+    });
+  }
+  return out;
 }
 
 export function parseGlobalWorkbook(
@@ -27,6 +85,13 @@ export function parseGlobalWorkbook(
   const daily: GlobalDailyRow[] = [];
   let period: ParsedGlobal["period"] = null;
   let sources: SourceRow[] = [];
+  let channels: GlobalChannelRow[] = [];
+  const statusBuyers: Partial<
+    Record<
+      GlobalDailyRow["status"],
+      { baru: number | null; lama: number | null; potensi: number | null }
+    >
+  > = {};
 
   for (const sheet of sheets) {
     const status = STATUS_BY_SHEET[sheet.name.trim().toLowerCase()];
@@ -37,10 +102,17 @@ export function parseGlobalWorkbook(
         const periodHit = parsePeriodString(first);
         if (periodHit) {
           period ??= periodHit;
+          // total row carries the accurate period buyer totals for this status
+          statusBuyers[status] = {
+            baru: parseIDNumber(row[12]),
+            lama: parseIDNumber(row[13]),
+            potensi: parseIDNumber(row[14]),
+          };
           continue; // period-total row, not a day
         }
         const iso = parseDMY(first);
         if (!iso) continue;
+        const buyers = statusBuyers[status];
         daily.push({
           date: iso,
           status,
@@ -51,16 +123,23 @@ export function parseGlobalWorkbook(
           total_pengunjung: parseIDNumber(row[5]),
           konversi: parseIDPercent(row[6]),
           pesanan_dibatalkan: parseIDNumber(row[7]),
+          pembeli_baru: buyers?.baru ?? null,
+          pembeli_lama: buyers?.lama ?? null,
+          potensi_pembeli: buyers?.potensi ?? null,
         });
       }
     }
 
     if (sources.length === 0) {
       const headerIdx = sheet.rows.findIndex((r) =>
-        r.some((c) => (c ?? "").toLowerCase().includes("penjualan dari halaman produk")),
+        r.some((c) =>
+          (c ?? "").toLowerCase().includes("penjualan dari halaman produk"),
+        ),
       );
       if (headerIdx >= 0) {
-        const header = sheet.rows[headerIdx].map((c) => (c ?? "").toLowerCase().trim());
+        const header = sheet.rows[headerIdx].map((c) =>
+          (c ?? "").toLowerCase().trim(),
+        );
         const dataRow = sheet.rows[headerIdx + 1];
         if (dataRow) {
           if (!period) {
@@ -68,14 +147,24 @@ export function parseGlobalWorkbook(
             if (hit) period = hit;
           }
           sources = SOURCE_COLUMNS.flatMap(({ header: h, key }) => {
-            const col = header.findIndex((c) => c === h);
-            if (col < 0) return [];
-            return [{ source: key, penjualan: parseIDNumber(dataRow[col]) ?? 0 }];
+            const colIdx = header.findIndex((c) => c === h);
+            if (colIdx < 0) return [];
+            return [{ source: key, penjualan: parseIDNumber(dataRow[colIdx]) ?? 0 }];
           });
         }
       }
     }
+
+    // Per-channel performance comes from the "(pesanan dibuat)Asal Penjualan" sheet.
+    const lname = sheet.name.toLowerCase();
+    if (
+      channels.length === 0 &&
+      lname.includes("asal penjualan") &&
+      lname.includes("dibuat")
+    ) {
+      channels = parseChannels(sheet.rows);
+    }
   }
 
-  return { period, daily, sources };
+  return { period, daily, sources, channels };
 }

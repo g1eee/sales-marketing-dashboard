@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { formatInt, formatPercent, formatRupiah } from "@/lib/analytics/format";
 import type { Funnel } from "@/lib/sales/dashboard-data";
 
-/** Order-status funnel: omzet (bar), orders & CVR per stage, with retention. */
+/** Order-status funnel: omzet bar + orders/CVR + buyer breakdown per stage. */
 export function FunnelCard({ funnel }: { funnel: Funnel }) {
   const stages = [
     { label: "Pesanan Dibuat", t: funnel.dibuat },
@@ -15,7 +15,7 @@ export function FunnelCard({ funnel }: { funnel: Funnel }) {
     <Card className="p-5 shadow-soft">
       <h2 className="mb-1 font-heading text-base font-medium">Funnel Pesanan</h2>
       <p className="mb-4 text-xs text-muted-foreground">
-        Omzet, pesanan & konversi di tiap tahap
+        Omzet, pesanan, konversi & pembeli di tiap tahap
       </p>
       <div className="space-y-4">
         {stages.map((s, i) => {
@@ -26,6 +26,8 @@ export function FunnelCard({ funnel }: { funnel: Funnel }) {
               : stages[i - 1].t.omzet > 0
                 ? s.t.omzet / stages[i - 1].t.omzet
                 : null;
+          const hasBuyers =
+            s.t.baru !== null || s.t.lama !== null || s.t.potensi !== null;
           return (
             <div key={s.label}>
               <div className="mb-1 flex items-center justify-between gap-2 text-sm">
@@ -40,13 +42,19 @@ export function FunnelCard({ funnel }: { funnel: Funnel }) {
                   style={{ width: `${Math.max(pct * 100, 1)}%` }}
                 />
               </div>
-              <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 text-xs text-muted-foreground">
                 <span className="font-mono tabular-nums">
                   {formatInt(s.t.pesanan)} pesanan · CVR{" "}
                   {formatPercent(s.t.konversi)}
                 </span>
                 {retain !== null && <span>{formatPercent(retain)} lanjut</span>}
               </div>
+              {hasBuyers && (
+                <p className="mt-0.5 font-mono text-xs tabular-nums text-muted-foreground">
+                  Baru {formatInt(s.t.baru ?? 0)} · Lama {formatInt(s.t.lama ?? 0)}{" "}
+                  · Potensi {formatInt(s.t.potensi ?? 0)}
+                </p>
+              )}
             </div>
           );
         })}

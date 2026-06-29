@@ -10,6 +10,23 @@ export interface GlobalDailyRow {
   total_pengunjung: number | null;
   konversi: number | null;
   pesanan_dibatalkan: number | null;
+  // Period totals for the status (stamped on each daily row, NOT summed —
+  // returning/potential buyers repeat across days so summing over-counts).
+  pembeli_baru?: number | null;
+  pembeli_lama?: number | null;
+  potensi_pembeli?: number | null;
+}
+
+/** Per-channel performance (Halaman Produk / Live / Video / Affiliate). */
+export interface GlobalChannelRow {
+  channel: string;
+  penjualan: number;
+  dilihat: number | null; // impresi
+  diklik: number | null;
+  ctr: number | null;
+  cvr: number | null;
+  pesanan: number | null;
+  pembeli: number | null;
 }
 
 export interface SourceRow {
@@ -89,4 +106,5 @@ export interface ParsedGlobal {
   period: { start: string; end: string } | null;
   daily: GlobalDailyRow[];
   sources: SourceRow[];
+  channels: GlobalChannelRow[];
 }
