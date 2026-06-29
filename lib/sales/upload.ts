@@ -82,45 +82,51 @@ export async function saveUpload(
   if (rpErr) throw rpErr;
   const periodId = rp.id as string;
 
+  // Insert + surface errors (a missing column/table must not fail silently).
+  const ins = async (table: string, rows: object[]) => {
+    if (!rows.length) return;
+    const { error } = await supabase.from(table).insert(rows);
+    if (error) throw new Error(`Gagal menyimpan ${table}: ${error.message}`);
+  };
+
   if (preview.global) {
-    if (preview.global.daily.length)
-      await supabase.from("global_daily").insert(
-        preview.global.daily.map((d) => ({
-          period_id: periodId,
-          ...d,
-          // penjualan_per_pesanan is an average and can be fractional; the
-          // column is bigint rupiah, so round to a whole number.
-          penjualan_per_pesanan: roundOrNull(d.penjualan_per_pesanan) ?? 0,
-        })),
-      );
-    if (preview.global.sources.length)
-      await supabase.from("global_source").insert(
-        preview.global.sources.map((s) => ({ period_id: periodId, ...s })),
-      );
-    if (preview.global.channels.length)
-      await supabase.from("global_channel").insert(
-        preview.global.channels.map((c) => ({ period_id: periodId, ...c })),
-      );
-  }
-  if (preview.product) {
-    if (preview.product.summary.length)
-      await supabase.from("product_summary").insert(
-        preview.product.summary.map((p) => ({ period_id: periodId, ...p })),
-      );
-    if (preview.product.detail.length)
-      await supabase.from("product_detail").insert(
-        preview.product.detail.map((p) => ({ period_id: periodId, ...p })),
-      );
-  }
-  if (preview.ads?.length)
-    await supabase.from("ads_summary").insert(
-      preview.ads.map((a) => ({
+    await ins(
+      "global_daily",
+      preview.global.daily.map((d) => ({
         period_id: periodId,
-        ...a,
-        // biaya_per_konversi is an average; the column is bigint rupiah.
-        biaya_per_konversi: roundOrNull(a.biaya_per_konversi),
+        ...d,
+        // penjualan_per_pesanan is an average; the column is bigint rupiah.
+        penjualan_per_pesanan: roundOrNull(d.penjualan_per_pesanan) ?? 0,
       })),
     );
+    await ins(
+      "global_source",
+      preview.global.sources.map((s) => ({ period_id: periodId, ...s })),
+    );
+    await ins(
+      "global_channel",
+      preview.global.channels.map((c) => ({ period_id: periodId, ...c })),
+    );
+  }
+  if (preview.product) {
+    await ins(
+      "product_summary",
+      preview.product.summary.map((p) => ({ period_id: periodId, ...p })),
+    );
+    await ins(
+      "product_detail",
+      preview.product.detail.map((p) => ({ period_id: periodId, ...p })),
+    );
+  }
+  await ins(
+    "ads_summary",
+    (preview.ads ?? []).map((a) => ({
+      period_id: periodId,
+      ...a,
+      // biaya_per_konversi is an average; the column is bigint rupiah.
+      biaya_per_konversi: roundOrNull(a.biaya_per_konversi),
+    })),
+  );
 
   return { periodId };
 }
