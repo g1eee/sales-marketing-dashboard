@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { pickStatus, sumDailyTotals } from "@/lib/analytics/aggregate";
+import { pickStatus, sumDailyTotals, type Totals } from "@/lib/analytics/aggregate";
 import { compareTotals, type TotalsComparison } from "@/lib/analytics/compare";
 import { aggregateProducts, type ProductAgg } from "@/lib/analytics/product";
 import { aggregateAds, type AdsAgg } from "@/lib/analytics/ads";
@@ -78,9 +78,9 @@ async function fetchAds(supabase: DB, periodId: string): Promise<AdsRow[]> {
 
 // ---------- Ringkasan (Global) ----------
 export interface Funnel {
-  dibuat: number;
-  siap_dikirim: number;
-  dibayar: number;
+  dibuat: Totals;
+  siap_dikirim: Totals;
+  dibayar: Totals;
 }
 
 export interface RingkasanData {
@@ -113,9 +113,9 @@ export async function getRingkasanData(opts: {
     .eq("period_id", opts.periodId);
 
   const funnel: Funnel = {
-    dibuat: sumDailyTotals(pickStatus(daily, "dibuat")).omzet,
-    siap_dikirim: sumDailyTotals(pickStatus(daily, "siap_dikirim")).omzet,
-    dibayar: sumDailyTotals(pickStatus(daily, "dibayar")).omzet,
+    dibuat: sumDailyTotals(pickStatus(daily, "dibuat")),
+    siap_dikirim: sumDailyTotals(pickStatus(daily, "siap_dikirim")),
+    dibayar: sumDailyTotals(pickStatus(daily, "dibayar")),
   };
 
   return {

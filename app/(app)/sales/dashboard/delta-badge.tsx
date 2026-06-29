@@ -23,7 +23,7 @@ export function DeltaBadge({
     good === null
       ? "bg-muted text-muted-foreground"
       : good
-        ? "bg-primary/10 text-primary"
+        ? "bg-green-500/12 text-green-600 dark:text-green-500"
         : "bg-destructive/10 text-destructive";
   const Icon =
     d.direction === "up"
