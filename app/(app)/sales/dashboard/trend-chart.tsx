@@ -60,8 +60,8 @@ export function TrendChart({ daily }: { daily: GlobalDailyRow[] }) {
       <AreaChart data={data} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
         <defs>
           <linearGradient id="omzet-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={CHART.emerald} stopOpacity={0.3} />
-            <stop offset="95%" stopColor={CHART.emerald} stopOpacity={0} />
+            <stop offset="0%" stopColor={CHART.line} stopOpacity={0.22} />
+            <stop offset="95%" stopColor={CHART.line} stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke={CHART.grid} strokeDasharray="3 3" />
@@ -80,10 +80,10 @@ export function TrendChart({ daily }: { daily: GlobalDailyRow[] }) {
         <Area
           type="monotone"
           dataKey="omzet"
-          stroke={CHART.emerald}
+          stroke={CHART.line}
           strokeWidth={2}
           fill="url(#omzet-fill)"
-          activeDot={{ r: 4, strokeWidth: 0, fill: CHART.emerald }}
+          activeDot={{ r: 4, strokeWidth: 0, fill: CHART.line }}
         />
       </AreaChart>
     </ResponsiveContainer>

@@ -32,7 +32,7 @@ export function Hero({
         aria-hidden
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        <div className="absolute -top-28 left-1/3 h-[26rem] w-[26rem] -translate-x-1/2 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,rgba(20,130,100,0.16)_0%,rgba(20,130,100,0)_70%)]" />
+        <div className="absolute -top-28 left-1/3 h-[26rem] w-[26rem] -translate-x-1/2 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,rgba(255,255,255,0.07)_0%,rgba(255,255,255,0)_70%)]" />
       </div>
 
       <div className="relative flex flex-col gap-1">
