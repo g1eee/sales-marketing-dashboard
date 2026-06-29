@@ -48,73 +48,76 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* "Emerald Ledger" palette — light, calm, money/growth-forward.
+   Neutrals carry a faint green undertone (hue ~165) so the whole UI belongs
+   to one world; emerald is the single accent. Numbers are set in mono (see layout). */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --background: oklch(0.985 0.004 165); /* soft green-tinted off-white canvas */
+  --foreground: oklch(0.205 0.013 165); /* near-black ink, green undertone */
+  --card: oklch(1 0 0); /* pure white cards pop off the canvas */
+  --card-foreground: oklch(0.205 0.013 165);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.205 0.013 165);
+  --primary: oklch(0.52 0.115 162); /* emerald */
+  --primary-foreground: oklch(0.985 0.01 165);
+  --secondary: oklch(0.96 0.006 165);
+  --secondary-foreground: oklch(0.3 0.02 165);
+  --muted: oklch(0.965 0.006 165);
+  --muted-foreground: oklch(0.49 0.012 165); /* slate, green undertone */
+  --accent: oklch(0.95 0.022 165); /* faint emerald tint for hovers */
+  --accent-foreground: oklch(0.45 0.1 162);
+  --destructive: oklch(0.55 0.18 15); /* refined rose */
+  --border: oklch(0.915 0.007 165);
+  --input: oklch(0.915 0.007 165);
+  --ring: oklch(0.52 0.115 162); /* emerald focus ring */
+  --chart-1: oklch(0.55 0.12 162); /* emerald */
+  --chart-2: oklch(0.66 0.1 188); /* teal */
+  --chart-3: oklch(0.78 0.09 165); /* mint */
+  --chart-4: oklch(0.7 0.13 75); /* amber — the "ads/spend" series */
+  --chart-5: oklch(0.42 0.07 178); /* deep ink-teal */
+  --radius: 0.75rem;
+  --sidebar: oklch(0.992 0.003 165);
+  --sidebar-foreground: oklch(0.205 0.013 165);
+  --sidebar-primary: oklch(0.52 0.115 162);
+  --sidebar-primary-foreground: oklch(0.985 0.01 165);
+  --sidebar-accent: oklch(0.95 0.022 165);
+  --sidebar-accent-foreground: oklch(0.45 0.1 162);
+  --sidebar-border: oklch(0.915 0.007 165);
+  --sidebar-ring: oklch(0.52 0.115 162);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: oklch(0.16 0.012 175);
+  --foreground: oklch(0.97 0.005 165);
+  --card: oklch(0.205 0.014 175);
+  --card-foreground: oklch(0.97 0.005 165);
+  --popover: oklch(0.205 0.014 175);
+  --popover-foreground: oklch(0.97 0.005 165);
+  --primary: oklch(0.72 0.13 162);
+  --primary-foreground: oklch(0.2 0.03 165);
+  --secondary: oklch(0.27 0.015 175);
+  --secondary-foreground: oklch(0.97 0.005 165);
+  --muted: oklch(0.27 0.015 175);
+  --muted-foreground: oklch(0.71 0.02 165);
+  --accent: oklch(0.3 0.03 168);
+  --accent-foreground: oklch(0.92 0.03 165);
+  --destructive: oklch(0.65 0.18 18);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.72 0.13 162);
+  --chart-1: oklch(0.72 0.13 162);
+  --chart-2: oklch(0.7 0.1 188);
+  --chart-3: oklch(0.8 0.09 165);
+  --chart-4: oklch(0.74 0.13 75);
+  --chart-5: oklch(0.55 0.08 178);
+  --sidebar: oklch(0.205 0.014 175);
+  --sidebar-foreground: oklch(0.97 0.005 165);
+  --sidebar-primary: oklch(0.72 0.13 162);
+  --sidebar-primary-foreground: oklch(0.2 0.03 165);
+  --sidebar-accent: oklch(0.3 0.03 168);
+  --sidebar-accent-foreground: oklch(0.92 0.03 165);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.72 0.13 162);
 }
 
 @layer base {
@@ -126,5 +129,15 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /* Soft, ink-tinted lift for dashboard panels (references use gentle shadows,
+     not hard borders). Invisible on dark, where the card ring carries the edge. */
+  .shadow-soft {
+    box-shadow:
+      0 1px 2px -1px oklch(0.205 0.013 165 / 0.06),
+      0 14px 34px -20px oklch(0.205 0.013 165 / 0.22);
   }
 }
