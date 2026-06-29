@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -23,25 +24,26 @@ export function UserMenu({ user }: { user: SessionUser }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon" className="rounded-full" />
-        }
+        render={<Button variant="ghost" size="icon" className="rounded-full" />}
       >
         <Avatar className="size-8">
           <AvatarFallback>{initials(user.fullName, user.email)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">
-              {user.fullName || user.email}
-            </span>
-            <span className="text-muted-foreground text-xs capitalize">
-              {user.role}
-            </span>
-          </div>
-        </DropdownMenuLabel>
+        {/* base-ui requires GroupLabel to live inside a Group, else it throws. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">
+                {user.fullName || user.email}
+              </span>
+              <span className="text-muted-foreground text-xs capitalize">
+                {user.role}
+              </span>
+            </div>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <form action={signOut}>
           <DropdownMenuItem
