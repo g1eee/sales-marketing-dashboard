@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { GlobalDailyRow } from "@/lib/parsers/types";
 import { formatInt, formatRupiah } from "@/lib/analytics/format";
+import { CHART } from "@/lib/chart-colors";
 
 interface Point {
   label: string;
@@ -59,34 +60,30 @@ export function TrendChart({ daily }: { daily: GlobalDailyRow[] }) {
       <AreaChart data={data} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
         <defs>
           <linearGradient id="omzet-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0} />
+            <stop offset="0%" stopColor={CHART.emerald} stopOpacity={0.3} />
+            <stop offset="95%" stopColor={CHART.emerald} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid
-          vertical={false}
-          stroke="var(--border)"
-          strokeDasharray="3 3"
-        />
+        <CartesianGrid vertical={false} stroke={CHART.grid} strokeDasharray="3 3" />
         <XAxis
           dataKey="label"
           tickLine={false}
           axisLine={false}
           minTickGap={24}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={{ fontSize: 11, fill: CHART.axis }}
         />
         <YAxis hide domain={[0, "dataMax"]} />
         <Tooltip
           content={<TrendTooltip />}
-          cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
+          cursor={{ stroke: CHART.grid, strokeWidth: 1 }}
         />
         <Area
           type="monotone"
           dataKey="omzet"
-          stroke="var(--chart-1)"
+          stroke={CHART.emerald}
           strokeWidth={2}
           fill="url(#omzet-fill)"
-          activeDot={{ r: 4, strokeWidth: 0, fill: "var(--chart-1)" }}
+          activeDot={{ r: 4, strokeWidth: 0, fill: CHART.emerald }}
         />
       </AreaChart>
     </ResponsiveContainer>

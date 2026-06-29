@@ -67,9 +67,22 @@ export function Controls({
 
   const comparePeriods = periods.filter((p) => p.id !== periodId);
 
+  // `items` lets base-ui's SelectValue render labels (not the raw UUID/code value).
+  const brandItems = Object.fromEntries(brands.map((b) => [b.id, b.name]));
+  const periodItems = Object.fromEntries(
+    periods.map((p) => [p.id, fmtPeriod(p)]),
+  );
+  const compareItems = Object.fromEntries(
+    comparePeriods.map((p) => [p.id, `vs ${fmtPeriod(p)}`]),
+  );
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Select value={brandId ?? ""} onValueChange={(v) => navigate({ brand: v })}>
+      <Select
+        items={brandItems}
+        value={brandId ?? ""}
+        onValueChange={(v) => navigate({ brand: v })}
+      >
         <SelectTrigger className="min-w-40">
           <SelectValue placeholder="Pilih brand…" />
         </SelectTrigger>
@@ -83,6 +96,7 @@ export function Controls({
       </Select>
 
       <Select
+        items={periodItems}
         value={periodId ?? ""}
         onValueChange={(v) => navigate({ period: v })}
         disabled={!brandId}
@@ -100,6 +114,7 @@ export function Controls({
       </Select>
 
       <Select
+        items={compareItems}
         value={compareId ?? ""}
         onValueChange={(v) => navigate({ compare: v })}
         disabled={!periodId}
@@ -116,7 +131,11 @@ export function Controls({
         </SelectContent>
       </Select>
 
-      <Select value={status} onValueChange={(v) => navigate({ status: v ?? "dibuat" })}>
+      <Select
+        items={STATUS_LABELS}
+        value={status}
+        onValueChange={(v) => navigate({ status: v ?? "dibuat" })}
+      >
         <SelectTrigger className="min-w-40">
           <SelectValue />
         </SelectTrigger>

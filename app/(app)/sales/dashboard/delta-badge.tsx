@@ -15,6 +15,7 @@ export function DeltaBadge({
   invert?: boolean;
   className?: string;
 }) {
+  if (value === null) return null; // no comparison → no badge (declutter)
   const d = formatDelta(value);
   const good =
     d.direction === "up" ? !invert : d.direction === "down" ? invert : null;

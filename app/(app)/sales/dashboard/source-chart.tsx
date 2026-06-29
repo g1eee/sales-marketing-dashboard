@@ -3,6 +3,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { SourceRow } from "@/lib/parsers/types";
 import { formatRupiah } from "@/lib/analytics/format";
+import { SOURCE_COLORS } from "@/lib/chart-colors";
 
 const LABELS: Record<string, string> = {
   halaman_produk: "Halaman Produk",
@@ -11,13 +12,6 @@ const LABELS: Record<string, string> = {
   affiliate: "Affiliate",
   iklan_shopee: "Iklan Shopee",
 };
-const COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-4)",
-  "var(--chart-3)",
-  "var(--chart-5)",
-];
 
 interface Slice {
   name: string;
@@ -35,7 +29,8 @@ function SourceTooltip({
 }) {
   if (!active || !payload?.length) return null;
   const s = payload[0].payload;
-  const pct = total > 0 ? ((s.value / total) * 100).toFixed(1).replace(".", ",") : "0";
+  const pct =
+    total > 0 ? ((s.value / total) * 100).toFixed(1).replace(".", ",") : "0";
   return (
     <div className="rounded-lg bg-popover px-3 py-2 text-xs ring-1 ring-foreground/10 shadow-soft">
       <p className="mb-0.5 font-medium">{s.name}</p>
@@ -74,7 +69,7 @@ export function SourceChart({ sources }: { sources: SourceRow[] }) {
             strokeWidth={0}
           >
             {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              <Cell key={i} fill={SOURCE_COLORS[i % SOURCE_COLORS.length]} />
             ))}
           </Pie>
           <Tooltip content={<SourceTooltip total={total} />} />
@@ -86,7 +81,7 @@ export function SourceChart({ sources }: { sources: SourceRow[] }) {
             <span className="flex items-center gap-2">
               <span
                 className="size-2.5 shrink-0 rounded-full"
-                style={{ background: COLORS[i % COLORS.length] }}
+                style={{ background: SOURCE_COLORS[i % SOURCE_COLORS.length] }}
               />
               {d.name}
             </span>
