@@ -13,7 +13,9 @@ import type {
 } from "@/lib/parsers/types";
 
 export function readWorkbookSheets(buf: ArrayBuffer): { name: string; rows: string[][] }[] {
-  const wb = XLSX.read(buf, { type: "array" });
+  // SheetJS mis-parses a bare ArrayBuffer with type:"array" (treats it as raw
+  // text), so wrap it in a Uint8Array byte view first.
+  const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
   return wb.SheetNames.map((name) => ({
     name,
     rows: XLSX.utils.sheet_to_json<string[]>(wb.Sheets[name], {
@@ -83,7 +85,13 @@ export async function saveUpload(
   if (preview.global) {
     if (preview.global.daily.length)
       await supabase.from("global_daily").insert(
-        preview.global.daily.map((d) => ({ period_id: periodId, ...d })),
+        preview.global.daily.map((d) => ({
+          period_id: periodId,
+          ...d,
+          // penjualan_per_pesanan is an average and can be fractional; the
+          // column is bigint rupiah, so round to a whole number.
+          penjualan_per_pesanan: roundOrNull(d.penjualan_per_pesanan) ?? 0,
+        })),
       );
     if (preview.global.sources.length)
       await supabase.from("global_source").insert(
@@ -102,8 +110,17 @@ export async function saveUpload(
   }
   if (preview.ads?.length)
     await supabase.from("ads_summary").insert(
-      preview.ads.map((a) => ({ period_id: periodId, ...a })),
+      preview.ads.map((a) => ({
+        period_id: periodId,
+        ...a,
+        // biaya_per_konversi is an average; the column is bigint rupiah.
+        biaya_per_konversi: roundOrNull(a.biaya_per_konversi),
+      })),
     );
 
   return { periodId };
+}
+
+function roundOrNull(n: number | null): number | null {
+  return n === null ? null : Math.round(n);
 }
