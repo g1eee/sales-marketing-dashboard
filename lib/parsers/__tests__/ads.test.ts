@@ -28,4 +28,9 @@ describe("parseAdsCsv", () => {
     expect(rows[0].ctr).toBeCloseTo(0.0433, 4);
     expect(rows[0].acos).toBeCloseTo(0.0603, 4);
   });
+  it("captures bidding mode and direct metrics in extra", () => {
+    expect(rows[0].extra.mode_bidding).toBe("GMV Max ROAS");
+    expect(rows[0].extra.konversi_langsung).toBe(183);
+    expect(rows[0].extra.omzet_langsung).toBe(7267461);
+  });
 });

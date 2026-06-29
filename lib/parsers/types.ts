@@ -17,6 +17,20 @@ export interface SourceRow {
   penjualan: number;
 }
 
+/** Rich product fields stashed in product_summary.extra (jsonb) — no migration. */
+export interface ProductExtra {
+  units?: number | null; // unit produk terjual (Pesanan Dibuat)
+  pembeli?: number | null; // total pembeli
+  aov?: number | null; // penjualan per pesanan
+  cart?: number | null; // dimasukkan ke keranjang
+  cart_rate?: number | null; // tingkat konversi keranjang (fraction)
+  repeat_rate?: number | null; // tingkat pesanan berulang (fraction)
+  pengunjung?: number | null; // pengunjung produk (kunjungan)
+  lihat_tanpa_beli?: number | null; // pengunjung melihat tanpa membeli
+  suka?: number | null; // suka (likes)
+  status_produk?: string | null;
+}
+
 export interface ProductSummaryRow {
   kode_produk: string;
   product_name: string;
@@ -27,7 +41,7 @@ export interface ProductSummaryRow {
   persentase_klik: number | null;
   konversi: number | null;
   total_pembeli: number | null;
-  extra: Record<string, string>;
+  extra: ProductExtra;
 }
 
 export interface ProductDetailRow {
@@ -40,6 +54,15 @@ export interface ProductDetailRow {
   diklik: number | null;
   konversi: number | null;
   extra: Record<string, string>;
+}
+
+/** Rich ad fields stashed in ads_summary.extra (jsonb) — no migration. */
+export interface AdsExtra {
+  mode_bidding?: string | null; // e.g. "GMV Max ROAS" / "GMV Max Auto"
+  kode_produk?: string | null;
+  konversi_langsung?: number | null; // direct conversions
+  omzet_langsung?: number | null; // direct GMV
+  atc_rate?: number | null; // add-to-cart rate (fraction)
 }
 
 export interface AdsRow {
@@ -59,7 +82,7 @@ export interface AdsRow {
   roas: number | null;
   acos: number | null;
   voucher: number | null;
-  extra: Record<string, string>;
+  extra: AdsExtra;
 }
 
 export interface ParsedGlobal {
