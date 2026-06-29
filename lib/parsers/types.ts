@@ -17,12 +17,15 @@ export interface GlobalDailyRow {
   potensi_pembeli?: number | null;
 }
 
-/** Per-channel performance (Halaman Produk / Live / Video / Affiliate). */
+/** Per-channel performance per order status (from the visit-source sheets). */
 export interface GlobalChannelRow {
   channel: string;
+  status: "dibuat" | "siap_dikirim" | "dibayar";
   penjualan: number;
-  dilihat: number | null; // impresi
+  dilihat: number | null; // Jumlah Produk Dilihat
   diklik: number | null;
+  unik_dilihat: number | null;
+  unik_diklik: number | null;
   ctr: number | null;
   cvr: number | null;
   pesanan: number | null;

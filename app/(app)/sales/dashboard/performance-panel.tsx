@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { formatInt, formatPercent } from "@/lib/analytics/format";
+import { formatInt, formatPercent, formatRupiah } from "@/lib/analytics/format";
 import { cn } from "@/lib/utils";
 import type { GlobalChannelRow } from "@/lib/parsers/types";
 
@@ -23,9 +23,9 @@ export function PerformancePanel({ channels }: { channels: GlobalChannelRow[] })
   if (!c) return null;
 
   const stats = [
-    { label: "Impresi", value: formatInt(c.dilihat ?? 0) },
+    { label: "Penjualan", value: formatRupiah(c.penjualan) },
+    { label: "Produk Dilihat", value: formatInt(c.dilihat ?? 0) },
     { label: "Klik", value: formatInt(c.diklik ?? 0) },
-    { label: "CTR", value: formatPercent(c.ctr) },
     { label: "CVR", value: formatPercent(c.cvr) },
   ];
 

@@ -142,8 +142,11 @@ export async function getRingkasanData(opts: {
       .eq("period_id", opts.periodId),
     supabase
       .from("global_channel")
-      .select("channel, penjualan, dilihat, diklik, ctr, cvr, pesanan, pembeli")
-      .eq("period_id", opts.periodId),
+      .select(
+        "channel, status, penjualan, dilihat, diklik, unik_dilihat, unik_diklik, ctr, cvr, pesanan, pembeli",
+      )
+      .eq("period_id", opts.periodId)
+      .eq("status", opts.status),
   ]);
 
   const funnel: Funnel = {

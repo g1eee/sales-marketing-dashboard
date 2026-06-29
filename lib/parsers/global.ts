@@ -7,7 +7,16 @@ import type {
   SourceRow,
 } from "@/lib/parsers/types";
 
-const STATUS_BY_SHEET: Record<string, GlobalDailyRow["status"]> = {
+type Status = GlobalDailyRow["status"];
+
+const STATUS_BY_SHEET: Record<string, Status> = {
+  "pesanan dibuat": "dibuat",
+  "pesanan siap dikirim": "siap_dikirim",
+  "pesanan dibayar": "dibayar",
+};
+
+// "Pesanan Dibuat" / "Pesanan Siap Dikirim" / "Pesanan Dibayar" cell inside a sheet.
+const STATUS_BY_LABEL: Record<string, Status> = {
   "pesanan dibuat": "dibuat",
   "pesanan siap dikirim": "siap_dikirim",
   "pesanan dibayar": "dibayar",
@@ -21,7 +30,7 @@ const SOURCE_COLUMNS: { header: string; key: string }[] = [
   { header: "penjualan dari iklan shopee", key: "iklan_shopee" },
 ];
 
-// Per-channel total rows in the "Asal Penjualan" sheet (rasio 100%).
+// Per-channel total rows (rasio 100%) in a visit-source sheet.
 const CHANNEL_MAP: Record<string, string> = {
   "halaman produk": "halaman_produk",
   "live penjual": "live",
@@ -38,8 +47,19 @@ function round(n: number | null): number | null {
   return n === null ? null : Math.round(n);
 }
 
-/** Parse the per-channel total rows from an "Asal Penjualan" sheet. */
-function parseChannels(rows: string[][]): GlobalChannelRow[] {
+/** Read the order status named inside a visit-source sheet (e.g. "Pesanan Dibuat"). */
+function detectStatus(rows: string[][]): Status | null {
+  for (const row of rows.slice(0, 4)) {
+    for (const c of row) {
+      const s = STATUS_BY_LABEL[(c ?? "").toLowerCase().trim()];
+      if (s) return s;
+    }
+  }
+  return null;
+}
+
+/** Parse the per-channel total rows from a visit-source ("Asal/Sumber Kunjungan") sheet. */
+function parseChannels(rows: string[][], status: Status): GlobalChannelRow[] {
   const headerIdx = rows.findIndex((r) =>
     r.some((c) => (c ?? "").toLowerCase().includes("jumlah produk dilihat")),
   );
@@ -54,6 +74,8 @@ function parseChannels(rows: string[][]): GlobalChannelRow[] {
     ctr: idx("persentase klik"),
     cvr: idx("tingkat konversi pesanan"),
     pembeli: idx("total pembeli"),
+    unikDilihat: idx("produk unik dilihat"),
+    unikDiklik: idx("produk unik diklik"),
   };
   const at = (row: string[], i: number) => (i >= 0 ? (row[i] ?? "") : "");
 
@@ -67,9 +89,12 @@ function parseChannels(rows: string[][]): GlobalChannelRow[] {
     seen.add(channel);
     out.push({
       channel,
+      status,
       penjualan: parseIDNumber(at(row, col.penjualan)) ?? 0,
       dilihat: parseIDNumber(at(row, col.dilihat)),
       diklik: parseIDNumber(at(row, col.diklik)),
+      unik_dilihat: parseIDNumber(at(row, col.unikDilihat)),
+      unik_diklik: parseIDNumber(at(row, col.unikDiklik)),
       ctr: parseIDPercent(at(row, col.ctr)),
       cvr: parseIDPercent(at(row, col.cvr)),
       pesanan: round(parseIDNumber(at(row, col.pesanan))),
@@ -88,7 +113,7 @@ export function parseGlobalWorkbook(
   let channels: GlobalChannelRow[] = [];
   const statusBuyers: Partial<
     Record<
-      GlobalDailyRow["status"],
+      Status,
       { baru: number | null; lama: number | null; potensi: number | null }
     >
   > = {};
@@ -102,7 +127,6 @@ export function parseGlobalWorkbook(
         const periodHit = parsePeriodString(first);
         if (periodHit) {
           period ??= periodHit;
-          // total row carries the accurate period buyer totals for this status
           statusBuyers[status] = {
             baru: parseIDNumber(row[12]),
             lama: parseIDNumber(row[13]),
@@ -155,14 +179,10 @@ export function parseGlobalWorkbook(
       }
     }
 
-    // Per-channel performance comes from the "(pesanan dibuat)Asal Penjualan" sheet.
-    const lname = sheet.name.toLowerCase();
-    if (
-      channels.length === 0 &&
-      lname.includes("asal penjualan") &&
-      lname.includes("dibuat")
-    ) {
-      channels = parseChannels(sheet.rows);
+    // Per-channel performance comes from the visit-source sheets, one per status.
+    if (/kunjungan/i.test(sheet.name)) {
+      const st = detectStatus(sheet.rows);
+      if (st) channels = channels.concat(parseChannels(sheet.rows, st));
     }
   }
 
