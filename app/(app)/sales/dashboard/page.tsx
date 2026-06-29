@@ -1,16 +1,19 @@
 import Link from "next/link";
 import { listBrands } from "@/lib/brands";
-import { getPeriods, getDashboardData } from "@/lib/sales/dashboard-data";
+import {
+  getPeriods,
+  getRingkasanData,
+  getProdukData,
+  getIklanData,
+} from "@/lib/sales/dashboard-data";
 import { PageHeader } from "@/components/page-header";
-import { Card } from "@/components/ui/card";
 import { formatPeriodRange } from "@/lib/dates";
 import type { GlobalDailyRow } from "@/lib/parsers/types";
 import { Controls } from "./controls";
-import { Hero } from "./hero";
-import { KpiCards } from "./kpi-cards";
-import { SourceChart } from "./source-chart";
-import { ProductTable } from "./product-table";
-import { AdsPanel } from "./ads-panel";
+import { TabNav, type TabKey } from "./tab-nav";
+import { RingkasanTab } from "./ringkasan-tab";
+import { ProdukTab } from "./produk-tab";
+import { IklanTab } from "./iklan-tab";
 
 const STATUS_LABELS: Record<GlobalDailyRow["status"], string> = {
   dibuat: "Pesanan Dibuat",
@@ -36,24 +39,69 @@ export default async function DashboardPage({
     period?: string;
     compare?: string;
     status?: string;
+    tab?: string;
   }>;
 }) {
   const sp = await searchParams;
   const status = (sp.status ?? "dibuat") as GlobalDailyRow["status"];
+  const tab: TabKey = (
+    sp.tab === "produk" || sp.tab === "iklan" ? sp.tab : "ringkasan"
+  ) as TabKey;
+  const compareId = sp.compare ?? null;
+
   const brands = await listBrands();
   const periods = sp.brand ? await getPeriods(sp.brand) : [];
-  const data = sp.period
-    ? await getDashboardData({
-        periodId: sp.period,
-        comparePeriodId: sp.compare ?? null,
-        status,
-      })
+  const comparePeriod =
+    sp.period && compareId
+      ? (periods.find((p) => p.id === compareId) ?? null)
+      : null;
+  const compareLabel = comparePeriod
+    ? formatPeriodRange(comparePeriod.period_start, comparePeriod.period_end)
     : null;
 
-  const comparePeriod =
-    data && sp.compare
-      ? (periods.find((p) => p.id === sp.compare) ?? null)
-      : null;
+  let content: React.ReactNode = null;
+  let periodLabel = "";
+  if (sp.period) {
+    if (tab === "produk") {
+      const data = await getProdukData({
+        periodId: sp.period,
+        comparePeriodId: compareId,
+      });
+      periodLabel = formatPeriodRange(
+        data.period.period_start,
+        data.period.period_end,
+      );
+      content = <ProdukTab data={data} />;
+    } else if (tab === "iklan") {
+      const data = await getIklanData({
+        periodId: sp.period,
+        comparePeriodId: compareId,
+      });
+      periodLabel = formatPeriodRange(
+        data.period.period_start,
+        data.period.period_end,
+      );
+      content = <IklanTab data={data} />;
+    } else {
+      const data = await getRingkasanData({
+        periodId: sp.period,
+        comparePeriodId: compareId,
+        status,
+      });
+      periodLabel = formatPeriodRange(
+        data.period.period_start,
+        data.period.period_end,
+      );
+      content = (
+        <RingkasanTab
+          data={data}
+          periodLabel={periodLabel}
+          statusLabel={STATUS_LABELS[status]}
+          compareLabel={compareLabel}
+        />
+      );
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -83,7 +131,7 @@ export default async function DashboardPage({
           </Link>{" "}
           dulu, lalu upload data Shopee.
         </EmptyState>
-      ) : !data ? (
+      ) : !sp.period ? (
         sp.brand && periods.length === 0 ? (
           <EmptyState>
             Belum ada data untuk brand ini.{" "}
@@ -102,36 +150,24 @@ export default async function DashboardPage({
         )
       ) : (
         <div className="space-y-6">
-          <Hero
-            comparison={data.comparison}
-            daily={data.daily}
-            periodLabel={formatPeriodRange(
-              data.period.period_start,
-              data.period.period_end,
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <TabNav
+              params={{
+                brand: sp.brand,
+                period: sp.period,
+                compare: sp.compare,
+                status: sp.status,
+              }}
+              active={tab}
+            />
+            {tab !== "ringkasan" && periodLabel && (
+              <p className="text-sm text-muted-foreground">
+                {periodLabel}
+                {compareLabel ? ` · vs ${compareLabel}` : ""}
+              </p>
             )}
-            statusLabel={STATUS_LABELS[status]}
-            compareLabel={
-              comparePeriod
-                ? formatPeriodRange(
-                    comparePeriod.period_start,
-                    comparePeriod.period_end,
-                  )
-                : null
-            }
-          />
-          <KpiCards comparison={data.comparison} />
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="p-5 shadow-soft">
-              <h2 className="mb-4 font-heading text-base font-medium">
-                Sumber Penjualan
-              </h2>
-              <SourceChart sources={data.sources} />
-            </Card>
-            <div className="lg:col-span-2">
-              <ProductTable products={data.products} />
-            </div>
           </div>
-          <AdsPanel ads={data.ads} />
+          {content}
         </div>
       )}
     </div>

@@ -16,11 +16,12 @@ const TOP_N = 15;
 
 export function ProductTable({ products }: { products: ProductSummaryRow[] }) {
   const csv = toCsv(
-    ["Kode Produk", "Produk", "Omzet", "Pesanan", "Dilihat", "Konversi"],
+    ["Kode Produk", "Produk", "Omzet", "Unit", "Pesanan", "Dilihat", "Konversi"],
     products.map((p) => [
       p.kode_produk,
       p.product_name,
       p.penjualan,
+      p.extra?.units ?? null,
       p.total_pesanan,
       p.dilihat,
       p.konversi,
@@ -48,7 +49,7 @@ export function ProductTable({ products }: { products: ProductSummaryRow[] }) {
             <TableHead className="w-6 text-right text-muted-foreground">#</TableHead>
             <TableHead>Produk</TableHead>
             <TableHead className="text-right">Omzet</TableHead>
-            <TableHead className="text-right">Pesanan</TableHead>
+            <TableHead className="text-right">Unit</TableHead>
             <TableHead className="text-right">Konversi</TableHead>
           </TableRow>
         </TableHeader>
@@ -77,7 +78,7 @@ export function ProductTable({ products }: { products: ProductSummaryRow[] }) {
                 {formatRupiah(p.penjualan)}
               </TableCell>
               <TableCell className="text-right font-mono tabular-nums">
-                {formatInt(p.total_pesanan ?? 0)}
+                {formatInt(p.extra?.units ?? 0)}
               </TableCell>
               <TableCell className="text-right font-mono tabular-nums">
                 {formatPercent(p.konversi)}
