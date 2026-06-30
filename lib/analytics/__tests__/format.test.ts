@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   formatRupiah,
   formatRupiahCompact,
+  formatRupiahShort,
   formatInt,
   formatPercent,
   formatDelta,
@@ -22,6 +23,19 @@ describe("formatRupiahCompact", () => {
   });
   it("keeps small numbers whole", () => {
     expect(formatRupiahCompact(45000)).toBe("Rp 45.000");
+  });
+});
+
+describe("formatRupiahShort", () => {
+  it("compacts to k/M/B with tapering precision", () => {
+    expect(formatRupiahShort(200_000_000)).toBe("Rp 200M");
+    expect(formatRupiahShort(20_900_000)).toBe("Rp 20,9M");
+    expect(formatRupiahShort(2_968)).toBe("Rp 2,97k");
+    expect(formatRupiahShort(466_018_130)).toBe("Rp 466M");
+    expect(formatRupiahShort(1_250_000_000)).toBe("Rp 1,25B");
+  });
+  it("keeps sub-thousand whole", () => {
+    expect(formatRupiahShort(950)).toBe("Rp 950");
   });
 });
 

@@ -44,10 +44,19 @@ describe("aggregateAds", () => {
     expect(agg.ctr).toBeCloseTo(80 / 1500, 4);
     expect(agg.cvr).toBeCloseTo(0.1, 4); // 8/80
   });
+  it("sums add to cart and blends cost per conversion", () => {
+    const a = aggregateAds([
+      { ...mk(100, 1000, 50, 1000, 5), add_to_cart: 20 },
+      { ...mk(300, 600, 30, 500, 3), add_to_cart: 10 },
+    ]);
+    expect(a.add_to_cart).toBe(30);
+    expect(a.biaya_per_konversi).toBeCloseTo(50, 4); // 400 / 8
+  });
   it("guards divide-by-zero", () => {
     const e = aggregateAds([]);
     expect(e.roas).toBeNull();
     expect(e.acos).toBeNull();
     expect(e.ctr).toBeNull();
+    expect(e.biaya_per_konversi).toBeNull();
   });
 });
