@@ -46,17 +46,14 @@ export function ProdukTab({ data }: { data: ProdukData }) {
   const d = (cur: number, prev: number | null | undefined) =>
     previous ? pctChange(cur, prev ?? null) : undefined;
 
-  const dilihat = products.reduce((s, p) => s + num(p.dilihat), 0);
-  const diklik = products.reduce((s, p) => s + num(p.diklik), 0);
-  const cart = products.reduce((s, p) => s + num(p.extra?.cart), 0);
-  const pesanan = products.reduce((s, p) => s + num(p.total_pesanan), 0);
   const funnel = [
-    { label: "Dilihat", value: dilihat },
-    { label: "Diklik", value: diklik },
-    { label: "Masuk Keranjang", value: cart },
-    { label: "Pesanan", value: pesanan },
+    { label: "Impresi", value: current.dilihat },
+    { label: "Klik", value: current.diklik },
+    { label: "Keranjang", value: current.atc },
+    { label: "Pesanan", value: current.pesanan },
+    { label: "Repeat Order", value: current.repeat_orders },
   ];
-  const peak = dilihat || 1;
+  const peak = current.dilihat || 1;
 
   const withConv = products.filter(
     (p) => p.konversi != null && num(p.dilihat) > 0,
@@ -72,26 +69,31 @@ export function ProdukTab({ data }: { data: ProdukData }) {
   return (
     <div className="space-y-8">
       <Section title="Ringkasan Produk">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard
-            label="Unit Terjual"
+            label="Omset"
+            {...shortWithDetail(current.omzet, "rupiah")}
+            delta={d(current.omzet, previous?.omzet)}
+          />
+          <StatCard
+            label="Impresi"
+            {...shortWithDetail(current.dilihat, "int")}
+            delta={d(current.dilihat, previous?.dilihat)}
+          />
+          <StatCard
+            label="Klik"
+            {...shortWithDetail(current.diklik, "int")}
+            delta={d(current.diklik, previous?.diklik)}
+          />
+          <StatCard
+            label="ATC"
+            {...shortWithDetail(current.atc, "int")}
+            delta={d(current.atc, previous?.atc)}
+          />
+          <StatCard
+            label="Qty Produk"
             {...shortWithDetail(current.terjual, "int")}
             delta={d(current.terjual, previous?.terjual)}
-          />
-          <StatCard
-            label="Total Pembeli"
-            {...shortWithDetail(current.pembeli, "int")}
-            delta={d(current.pembeli, previous?.pembeli)}
-          />
-          <StatCard
-            label="Repeat-Order Rate"
-            value={formatPercent(current.repeat_rate)}
-            delta={d(num(current.repeat_rate), previous?.repeat_rate)}
-          />
-          <StatCard
-            label="Jumlah Produk"
-            {...shortWithDetail(current.produk, "int")}
-            delta={d(current.produk, previous?.produk)}
           />
         </div>
       </Section>
@@ -103,7 +105,7 @@ export function ProdukTab({ data }: { data: ProdukData }) {
               Funnel Produk
             </h2>
             <p className="mb-4 text-xs text-muted-foreground">
-              Dilihat → diklik → keranjang → pesanan (agregat)
+              Impresi → klik → keranjang → pesanan → repeat order (agregat)
             </p>
             <div className="space-y-3.5">
               {funnel.map((f) => (
@@ -119,19 +121,25 @@ export function ProdukTab({ data }: { data: ProdukData }) {
               <div>
                 <dt className="text-xs text-muted-foreground">Klik/Lihat</dt>
                 <dd className="font-mono text-sm tabular-nums">
-                  {formatPercent(dilihat ? diklik / dilihat : null)}
+                  {formatPercent(
+                    current.dilihat ? current.diklik / current.dilihat : null,
+                  )}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Keranjang/Klik</dt>
                 <dd className="font-mono text-sm tabular-nums">
-                  {formatPercent(diklik ? cart / diklik : null)}
+                  {formatPercent(
+                    current.diklik ? current.atc / current.diklik : null,
+                  )}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Pesanan/Krnjg</dt>
                 <dd className="font-mono text-sm tabular-nums">
-                  {formatPercent(cart ? pesanan / cart : null)}
+                  {formatPercent(
+                    current.atc ? current.pesanan / current.atc : null,
+                  )}
                 </dd>
               </div>
             </dl>

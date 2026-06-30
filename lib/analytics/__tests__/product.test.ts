@@ -34,9 +34,20 @@ describe("aggregateProducts", () => {
     // (0.1*10 + 0.2*30) / 40 = 0.175
     expect(agg.repeat_rate).toBeCloseTo(0.175, 4);
   });
+  it("sums impresi, klik, atc and repeat orders", () => {
+    const a = aggregateProducts([
+      { ...mk(1000, 10, 12, 8, 0.1), dilihat: 500, diklik: 100, extra: { units: 12, repeat_rate: 0.1, cart: 30 } },
+      { ...mk(3000, 30, 40, 20, 0.2), dilihat: 1500, diklik: 300, extra: { units: 40, repeat_rate: 0.2, cart: 90 } },
+    ]);
+    expect(a.dilihat).toBe(2000);
+    expect(a.diklik).toBe(400);
+    expect(a.atc).toBe(120);
+    expect(a.repeat_orders).toBe(7); // round(0.1*10 + 0.2*30)
+  });
   it("handles empty input", () => {
     const e = aggregateProducts([]);
     expect(e.omzet).toBe(0);
     expect(e.repeat_rate).toBeNull();
+    expect(e.repeat_orders).toBe(0);
   });
 });

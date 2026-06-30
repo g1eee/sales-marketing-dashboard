@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -14,6 +12,7 @@ import {
 import { StatCard } from "./stat-card";
 import { ExportButton } from "./export-button";
 import { Section } from "./section";
+import { Paginated } from "./paginated";
 import { pctChange } from "@/lib/analytics/compare";
 import {
   formatInt,
@@ -157,52 +156,6 @@ function CtrTable({
         ))}
       </TableBody>
     </Table>
-  );
-}
-
-// Pager wrapper: owns its own page state; 5 rows/page by default.
-function Paginated<T>({
-  rows,
-  perPage = 5,
-  children,
-}: {
-  rows: T[];
-  perPage?: number;
-  children: (pageRows: T[]) => ReactNode;
-}) {
-  const [page, setPage] = useState(0);
-  const pageCount = Math.max(1, Math.ceil(rows.length / perPage));
-  const cur = Math.min(page, pageCount - 1);
-  const pageRows = rows.slice(cur * perPage, cur * perPage + perPage);
-  return (
-    <>
-      {children(pageRows)}
-      {pageCount > 1 && (
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground">
-            Hal {cur + 1} / {pageCount}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={cur === 0}
-              onClick={() => setPage(cur - 1)}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={cur >= pageCount - 1}
-              onClick={() => setPage(cur + 1)}
-            >
-              Selanjutnya
-            </Button>
-          </div>
-        </div>
-      )}
-    </>
   );
 }
 
