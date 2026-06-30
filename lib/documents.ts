@@ -45,7 +45,7 @@ export function validateDocumentInput(input: Partial<DocumentInput>): string | n
 }
 
 export function parseDocumentFilters(
-  sp: Record<string, string | undefined>,
+  sp: { brand?: string; month?: string; year?: string },
 ): DocumentFilters {
   const f: DocumentFilters = {};
   if (sp.brand) f.brandId = sp.brand;
