@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAndParse, saveUpload, type UploadPreview } from "@/lib/sales/upload";
@@ -40,4 +41,16 @@ export async function commitUpload(preview: UploadPreview): Promise<{ periodId: 
   const user = await requireUser();
   const supabase = await createClient();
   return saveUpload(supabase, preview, user.id);
+}
+
+export async function deleteUpload(periodId: string): Promise<void> {
+  await requireUser();
+  const supabase = await createClient();
+  // Cascade (FK on delete cascade) removes all child rows for this period.
+  const { error } = await supabase
+    .from("report_periods")
+    .delete()
+    .eq("id", periodId);
+  if (error) throw new Error(`Gagal menghapus: ${error.message}`);
+  revalidatePath("/sales/upload");
 }
