@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Collapsible } from "@base-ui/react/collapsible";
+import { ChevronRight } from "lucide-react";
 import {
   OVERVIEW,
+  SECTIONS,
   ACCOUNT,
-  AREAS,
-  areaForPath,
   type NavItem,
+  type NavSubGroup,
 } from "@/lib/nav";
-import { AreaSwitcher } from "@/components/area-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -21,14 +22,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const areaId = areaForPath(pathname);
-  const area = AREAS.find((a) => a.id === areaId) ?? AREAS[0];
-
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -45,13 +46,40 @@ export function AppSidebar() {
     </SidebarMenuItem>
   );
 
+  // "Tools" — a collapsible cluster, open by default if it holds the active route.
+  const renderSubGroup = (group: NavSubGroup) => (
+    <Collapsible.Root
+      key={group.label}
+      defaultOpen={group.items.some((i) => isActive(i.href))}
+      render={<SidebarMenuItem />}
+    >
+      <SidebarMenuButton render={<Collapsible.Trigger />} className="group/collapsible">
+        <group.icon />
+        <span>{group.label}</span>
+        <ChevronRight className="ml-auto transition-transform group-data-[panel-open]/collapsible:rotate-90" />
+      </SidebarMenuButton>
+      <Collapsible.Panel render={<SidebarMenuSub />}>
+        {group.items.map((item) => (
+          <SidebarMenuSubItem key={item.href}>
+            <SidebarMenuSubButton
+              isActive={isActive(item.href)}
+              render={<Link href={item.href} />}
+            >
+              <item.icon />
+              <span>{item.label}</span>
+            </SidebarMenuSubButton>
+          </SidebarMenuSubItem>
+        ))}
+      </Collapsible.Panel>
+    </Collapsible.Root>
+  );
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex h-10 items-center px-2">
           <span className="text-lg font-semibold tracking-tight">Miragie</span>
         </div>
-        <AreaSwitcher area={areaId} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -59,11 +87,16 @@ export function AppSidebar() {
             <SidebarMenu>{renderItem(OVERVIEW)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {area.groups.map((group, i) => (
-          <SidebarGroup key={group.label ?? `group-${i}`}>
-            {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
+        {SECTIONS.map((section) => (
+          <SidebarGroup key={section.label}>
+            {section.label && (
+              <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
-              <SidebarMenu>{group.items.map(renderItem)}</SidebarMenu>
+              <SidebarMenu>
+                {section.items.map(renderItem)}
+                {section.subGroups?.map(renderSubGroup)}
+              </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
