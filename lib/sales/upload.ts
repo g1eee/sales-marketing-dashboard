@@ -29,6 +29,7 @@ export function readWorkbookSheets(buf: ArrayBuffer): { name: string; rows: stri
 export interface UploadPreview {
   brandId: string;
   period: { start: string; end: string } | null;
+  sourceFiles: string[];
   global?: ParsedGlobal;
   product?: { summary: ProductSummaryRow[]; detail: ProductDetailRow[] };
   ads?: AdsRow[];
@@ -76,6 +77,7 @@ export async function saveUpload(
       period_start: period.start,
       period_end: period.end,
       uploaded_by: uploadedBy,
+      source_files: preview.sourceFiles ?? [],
     })
     .select("id")
     .single();

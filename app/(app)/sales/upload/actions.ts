@@ -11,7 +11,11 @@ export async function previewUpload(formData: FormData): Promise<UploadPreview> 
   if (!brandId) throw new Error("Pilih brand terlebih dahulu.");
   const files = formData.getAll("files") as File[];
 
-  const preview: UploadPreview = { brandId, period: null };
+  const preview: UploadPreview = {
+    brandId,
+    period: null,
+    sourceFiles: files.map((f) => f.name),
+  };
   for (const file of files) {
     const isCsv = file.name.toLowerCase().endsWith(".csv");
     const result = isCsv
