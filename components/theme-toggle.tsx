@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical SSR mount guard
   React.useEffect(() => setMounted(true), []);
 
   // Before mount we don't know the resolved theme; assume dark (our default)
