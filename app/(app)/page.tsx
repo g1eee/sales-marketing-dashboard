@@ -1,25 +1,26 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, PenTool, Tag, Upload } from "lucide-react";
+import { ArrowRight, BarChart3, Database, PenTool, Tag } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { GlowBackground } from "@/components/glow-background";
 import { Card } from "@/components/ui/card";
 
+// ponytail: temporary hub. Roadmap #7 replaces this with the aggregate KPI Overview.
 const LINKS = [
   {
     href: "/sales/dashboard",
-    label: "Dashboard Sales",
-    desc: "Analitik penjualan, produk & iklan Shopee per periode.",
+    label: "Dashboard",
+    desc: "Analitik penjualan, produk & iklan per periode.",
     icon: BarChart3,
   },
   {
     href: "/sales/upload",
-    label: "Upload Data",
-    desc: "Tarik export Shopee (Global, Produk, Ads) tiap periode.",
-    icon: Upload,
+    label: "Data Integrasi",
+    desc: "Tarik export Shopee/TikTok tiap periode.",
+    icon: Database,
   },
   {
     href: "/marketing/requests",
-    label: "Request Desain",
+    label: "Briefs",
     desc: "Task tracker aset kreatif untuk tim Creative.",
     icon: PenTool,
   },
@@ -31,19 +32,19 @@ const LINKS = [
   },
 ];
 
-export default function HomePage() {
+export default function OverviewPage() {
   return (
     <div className="relative">
       <GlowBackground />
       <PageHeader
-        title="Selamat datang di Miragie"
-        description="Pusat analitik sales & marketing internal. Pilih modul untuk mulai."
+        title="Overview"
+        description="Ringkasan Digital Marketing & Creative. Pilih modul untuk mulai."
       />
       <div className="grid gap-4 sm:grid-cols-2">
         {LINKS.map((l) => (
           <Card
             key={l.href}
-            className="p-0 shadow-soft transition-shadow hover:shadow-md"
+            className="group/card p-0 shadow-soft transition-shadow hover:shadow-md"
           >
             <Link href={l.href} className="flex items-start gap-4 p-5">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
