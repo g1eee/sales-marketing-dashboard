@@ -5,7 +5,7 @@ import { PerformancePanel } from "./performance-panel";
 import { FunnelCard } from "./funnel-card";
 import { SourceChart } from "./source-chart";
 import { Section } from "./section";
-import { formatInt, formatPercent, formatRupiah } from "@/lib/analytics/format";
+import { formatPercent, shortWithDetail } from "@/lib/analytics/format";
 import type { RingkasanData } from "@/lib/sales/dashboard-data";
 
 const CHANNELS = ["halaman_produk", "live", "video", "affiliate"];
@@ -30,11 +30,17 @@ export function RingkasanTab({
     }),
   );
 
+  // Compact headline + exact detail per KPI (detail auto-hidden when not abbreviated).
+  const mk = (raw: number | null, fmt: "rupiah" | "int" | "percent") =>
+    fmt === "percent"
+      ? { value: formatPercent(raw) }
+      : shortWithDetail(raw ?? 0, fmt);
+
   const metrics: RevenueMetric[] = [
     {
       key: "omzet",
       label: "Omzet",
-      value: formatRupiah(current.omzet),
+      ...mk(current.omzet, "rupiah"),
       delta: delta.omzet,
       series: daily.map((d) => d.total_penjualan),
       format: "rupiah",
@@ -42,7 +48,7 @@ export function RingkasanTab({
     {
       key: "orders",
       label: "Pesanan",
-      value: formatInt(current.pesanan),
+      ...mk(current.pesanan, "int"),
       delta: delta.pesanan,
       series: daily.map((d) => d.total_pesanan),
       format: "int",
@@ -50,7 +56,7 @@ export function RingkasanTab({
     {
       key: "konversi",
       label: "Konversi",
-      value: formatPercent(current.konversi),
+      ...mk(current.konversi, "percent"),
       delta: delta.konversi,
       series: daily.map((d) => d.konversi ?? 0),
       format: "percent",
@@ -58,7 +64,7 @@ export function RingkasanTab({
     {
       key: "pengunjung",
       label: "Pengunjung",
-      value: formatInt(current.pengunjung),
+      ...mk(current.pengunjung, "int"),
       delta: delta.pengunjung,
       series: daily.map((d) => d.total_pengunjung ?? 0),
       format: "int",
@@ -66,7 +72,7 @@ export function RingkasanTab({
     {
       key: "aov",
       label: "Nilai / Pesanan",
-      value: formatRupiah(current.penjualan_per_pesanan),
+      ...mk(current.penjualan_per_pesanan, "rupiah"),
       delta: delta.penjualan_per_pesanan,
       series: daily.map((d) => d.penjualan_per_pesanan),
       format: "rupiah",
@@ -100,6 +106,7 @@ export function RingkasanTab({
               key={mt.key}
               label={mt.label}
               value={mt.value}
+              detail={mt.detail}
               delta={mt.delta}
               series={mt.series}
             />

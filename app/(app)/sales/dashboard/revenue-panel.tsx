@@ -22,6 +22,7 @@ export interface RevenueMetric {
   key: string;
   label: string;
   value: string;
+  detail?: string;
   delta: number | null;
   series: number[];
   format: MetricFormat;
@@ -90,6 +91,11 @@ export function RevenuePanel({
               </span>
               <DeltaBadge value={m.delta} />
             </div>
+            {m.detail && (
+              <p className="font-mono text-sm text-muted-foreground tabular-nums">
+                {m.detail}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {m.label}
               {compareLabel ? ` · vs ${compareLabel}` : ""}

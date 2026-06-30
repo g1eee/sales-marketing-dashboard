@@ -11,7 +11,7 @@ import { StatCard } from "./stat-card";
 import { ProductTable } from "./product-table";
 import { Section } from "./section";
 import { pctChange } from "@/lib/analytics/compare";
-import { formatInt, formatPercent } from "@/lib/analytics/format";
+import { formatInt, formatPercent, shortWithDetail } from "@/lib/analytics/format";
 import type { ProdukData } from "@/lib/sales/dashboard-data";
 
 const num = (x: number | null | undefined) => (typeof x === "number" ? x : 0);
@@ -75,12 +75,12 @@ export function ProdukTab({ data }: { data: ProdukData }) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Unit Terjual"
-            value={formatInt(current.terjual)}
+            {...shortWithDetail(current.terjual, "int")}
             delta={d(current.terjual, previous?.terjual)}
           />
           <StatCard
             label="Total Pembeli"
-            value={formatInt(current.pembeli)}
+            {...shortWithDetail(current.pembeli, "int")}
             delta={d(current.pembeli, previous?.pembeli)}
           />
           <StatCard
@@ -90,7 +90,7 @@ export function ProdukTab({ data }: { data: ProdukData }) {
           />
           <StatCard
             label="Jumlah Produk"
-            value={formatInt(current.produk)}
+            {...shortWithDetail(current.produk, "int")}
             delta={d(current.produk, previous?.produk)}
           />
         </div>

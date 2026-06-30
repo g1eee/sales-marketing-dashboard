@@ -3,6 +3,8 @@ import {
   formatRupiah,
   formatRupiahCompact,
   formatRupiahShort,
+  formatIntShort,
+  shortWithDetail,
   formatInt,
   formatPercent,
   formatDelta,
@@ -36,6 +38,31 @@ describe("formatRupiahShort", () => {
   });
   it("keeps sub-thousand whole", () => {
     expect(formatRupiahShort(950)).toBe("Rp 950");
+  });
+});
+
+describe("formatIntShort", () => {
+  it("compacts counts without the Rp prefix", () => {
+    expect(formatIntShort(134079)).toBe("134k");
+    expect(formatIntShort(1523)).toBe("1,52k");
+    expect(formatIntShort(950)).toBe("950");
+  });
+});
+
+describe("shortWithDetail", () => {
+  it("returns compact value + exact detail when abbreviated", () => {
+    expect(shortWithDetail(466018130, "rupiah")).toEqual({
+      value: "Rp 466M",
+      detail: "Rp 466.018.130",
+    });
+    expect(shortWithDetail(134079, "int")).toEqual({
+      value: "134k",
+      detail: "134.079",
+    });
+  });
+  it("omits detail when no abbreviation happened", () => {
+    expect(shortWithDetail(59, "int")).toEqual({ value: "59" });
+    expect(shortWithDetail(950, "rupiah")).toEqual({ value: "Rp 950" });
   });
 });
 
