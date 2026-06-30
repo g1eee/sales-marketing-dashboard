@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,10 @@ import { toCsv } from "@/lib/analytics/csv";
 import type { IklanData } from "@/lib/sales/dashboard-data";
 import type { AdsRow } from "@/lib/parsers/types";
 
+// Benchmarks: ROAS sehat >= 9; CTR/CVR sehat > 3%.
+const ROAS_TARGET = 9;
+const CTR_TARGET = 0.03;
+
 const num = (x: number | null | undefined) => (typeof x === "number" ? x : 0);
 const roasStr = (r: number | null) =>
   r === null ? "—" : `${r.toFixed(2).replace(".", ",")}×`;
@@ -35,20 +39,22 @@ const roasStr = (r: number | null) =>
 const acosOf = (a: AdsRow) =>
   num(a.omzet) > 0 ? num(a.biaya) / num(a.omzet) : null;
 
-// Benchmark: CTR/CVR > 3% = bagus (hijau), <= 3% = perlu perhatian (merah).
+// CTR/CVR > 3% = bagus (hijau), <= 3% = perlu perhatian (merah).
 const benchClass = (frac: number | null) =>
   frac === null
     ? ""
-    : frac > 0.03
+    : frac > CTR_TARGET
       ? "text-green-600 dark:text-green-500"
       : "text-destructive";
 
 function AdTable({
   rows,
   roasRed = false,
+  empty = "Tidak ada data iklan.",
 }: {
   rows: AdsRow[];
   roasRed?: boolean;
+  empty?: string;
 }) {
   return (
     <Table>
@@ -68,7 +74,7 @@ function AdTable({
               colSpan={5}
               className="py-8 text-center text-muted-foreground"
             >
-              Tidak ada data iklan.
+              {empty}
             </TableCell>
           </TableRow>
         )}
@@ -101,7 +107,13 @@ function AdTable({
 }
 
 // Low-CTR watchlist: ads that get impressions but few clicks (weak creative/targeting).
-function CtrTable({ rows }: { rows: AdsRow[] }) {
+function CtrTable({
+  rows,
+  empty = "Tidak ada data iklan.",
+}: {
+  rows: AdsRow[];
+  empty?: string;
+}) {
   return (
     <Table>
       <TableHeader>
@@ -119,7 +131,7 @@ function CtrTable({ rows }: { rows: AdsRow[] }) {
               colSpan={4}
               className="py-8 text-center text-muted-foreground"
             >
-              Tidak ada data iklan.
+              {empty}
             </TableCell>
           </TableRow>
         )}
@@ -145,6 +157,52 @@ function CtrTable({ rows }: { rows: AdsRow[] }) {
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+// Pager wrapper: owns its own page state; 5 rows/page by default.
+function Paginated<T>({
+  rows,
+  perPage = 5,
+  children,
+}: {
+  rows: T[];
+  perPage?: number;
+  children: (pageRows: T[]) => ReactNode;
+}) {
+  const [page, setPage] = useState(0);
+  const pageCount = Math.max(1, Math.ceil(rows.length / perPage));
+  const cur = Math.min(page, pageCount - 1);
+  const pageRows = rows.slice(cur * perPage, cur * perPage + perPage);
+  return (
+    <>
+      {children(pageRows)}
+      {pageCount > 1 && (
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground">
+            Hal {cur + 1} / {pageCount}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={cur === 0}
+              onClick={() => setPage(cur - 1)}
+            >
+              Sebelumnya
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={cur >= pageCount - 1}
+              onClick={() => setPage(cur + 1)}
+            >
+              Selanjutnya
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -178,13 +236,6 @@ export function IklanTab({ data }: { data: IklanData }) {
   const d = (cur: number, prev: number | null | undefined) =>
     previous ? pctChange(cur, prev ?? null) : undefined;
 
-  // Semua Iklan: paginate 5/page over all ads (already sorted by omzet desc).
-  const perPage = 5;
-  const [page, setPage] = useState(0);
-  const pageCount = Math.max(1, Math.ceil(ads.length / perPage));
-  const cur = Math.min(page, pageCount - 1);
-  const pageRows = ads.slice(cur * perPage, cur * perPage + perPage);
-
   const csv = toCsv(
     ["Iklan", "Status", "Mode Bidding", "Biaya", "Omzet", "ROAS", "ACOS", "CTR", "Konversi"],
     ads.map((a) => [
@@ -200,14 +251,13 @@ export function IklanTab({ data }: { data: IklanData }) {
     ]),
   );
 
+  // Watchlists: every ad below the benchmark (ROAS < 9 / CTR < 3%), worst first.
   const boros = ads
-    .filter((a) => num(a.biaya) > 0 && a.roas !== null)
-    .sort((a, b) => (a.roas as number) - (b.roas as number))
-    .slice(0, 8);
+    .filter((a) => num(a.biaya) > 0 && a.roas !== null && a.roas < ROAS_TARGET)
+    .sort((a, b) => (a.roas as number) - (b.roas as number));
   const ctrRendah = ads
-    .filter((a) => num(a.dilihat) > 0 && a.ctr !== null)
-    .sort((a, b) => (a.ctr as number) - (b.ctr as number))
-    .slice(0, 8);
+    .filter((a) => num(a.dilihat) > 0 && a.ctr !== null && a.ctr < CTR_TARGET)
+    .sort((a, b) => (a.ctr as number) - (b.ctr as number));
 
   return (
     <div className="space-y-8">
@@ -296,32 +346,7 @@ export function IklanTab({ data }: { data: IklanData }) {
           </div>
           {ads.length > 0 && <ExportButton filename="iklan.csv" csv={csv} />}
         </div>
-        <AdTable rows={pageRows} />
-        {pageCount > 1 && (
-          <div className="mt-3 flex items-center justify-between gap-2">
-            <span className="text-xs text-muted-foreground">
-              Hal {cur + 1} / {pageCount}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={cur === 0}
-                onClick={() => setPage(cur - 1)}
-              >
-                Sebelumnya
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={cur >= pageCount - 1}
-                onClick={() => setPage(cur + 1)}
-              >
-                Selanjutnya
-              </Button>
-            </div>
-          </div>
-        )}
+        <Paginated rows={ads}>{(rows) => <AdTable rows={rows} />}</Paginated>
       </Card>
 
       <Card className="p-5 shadow-soft sm:p-6">
@@ -329,9 +354,17 @@ export function IklanTab({ data }: { data: IklanData }) {
           Iklan Boros (ROAS terendah)
         </h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Belanja jalan tapi ROAS rendah — kandidat dipangkas atau dioptimasi
+          ROAS di bawah 9 — kandidat dipangkas atau dioptimasi
         </p>
-        <AdTable rows={boros} roasRed />
+        <Paginated rows={boros}>
+          {(rows) => (
+            <AdTable
+              rows={rows}
+              roasRed
+              empty="Mantap — tidak ada iklan dengan ROAS di bawah 9."
+            />
+          )}
+        </Paginated>
       </Card>
 
       <Card className="p-5 shadow-soft sm:p-6">
@@ -339,9 +372,16 @@ export function IklanTab({ data }: { data: IklanData }) {
           Iklan CTR Rendah
         </h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Sering tampil tapi jarang diklik — materi/targeting kurang menarik
+          CTR di bawah 3% — materi/targeting kurang menarik
         </p>
-        <CtrTable rows={ctrRendah} />
+        <Paginated rows={ctrRendah}>
+          {(rows) => (
+            <CtrTable
+              rows={rows}
+              empty="Mantap — tidak ada iklan dengan CTR di bawah 3%."
+            />
+          )}
+        </Paginated>
       </Card>
     </div>
   );
