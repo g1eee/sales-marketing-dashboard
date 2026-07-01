@@ -169,7 +169,7 @@ export function MonthGrid({
                       trigger={
                         <button
                           type="button"
-                          style={{ backgroundColor: brandColors.get(bar.brandId) }}
+                          style={{ backgroundColor: brandColors.get(bar.brandId) ?? "#94a3b8" }}
                           className="block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] text-white"
                         >
                           {bar.campaign.name}

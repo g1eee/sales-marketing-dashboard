@@ -101,7 +101,7 @@ export function CampaignList({
                           {c.brands.map((b) => (
                             <Badge
                               key={b.id}
-                              style={{ backgroundColor: brandColors.get(b.id) }}
+                              style={{ backgroundColor: brandColors.get(b.id) ?? "#94a3b8" }}
                               className="text-white"
                             >
                               {b.name}
@@ -132,7 +132,7 @@ export function CampaignList({
                             marketplaceOptions={marketplaceOptions}
                             campaign={c}
                             trigger={
-                              <Button variant="ghost" size="icon" aria-label="Edit">
+                              <Button variant="ghost" size="icon" aria-label={`Edit ${c.name}`}>
                                 <Pencil className="size-4" />
                               </Button>
                             }
