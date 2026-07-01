@@ -9,8 +9,8 @@ const brands: Brand[] = [{ id: "b1", name: "Brand A" }];
 const campaign: CampaignRow = {
   id: "c1",
   name: "11.11 Big Sale",
-  startDate: "2026-07-11",
-  endDate: "2026-07-12",
+  startDate: "2026-07-06",
+  endDate: "2026-07-08",
   notes: "",
   brands,
   marketplaces: ["Shopee"],
