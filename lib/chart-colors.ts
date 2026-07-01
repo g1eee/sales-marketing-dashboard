@@ -17,3 +17,23 @@ export const SOURCE_COLORS = [
   "#9b7fe0", // Affiliate — violet
   "#5fb0c4", // (spare) teal
 ];
+
+// Categorical hues for per-brand identity on Kalender Promo (grid bars, list chips).
+export const BRAND_COLORS = [
+  "#5b9df0", // blue
+  "#4cb782", // green
+  "#d8a23a", // amber
+  "#9b7fe0", // violet
+  "#5fb0c4", // teal
+  "#e0708f", // rose
+  "#8fae4c", // lime
+  "#e08a4c", // orange
+] as const;
+
+// Stable per-brand color keyed by id, computed from the full brand list (not a filtered
+// subset) so a brand's color never changes depending on which filter is active.
+export function assignBrandColors(brands: { id: string }[]): Map<string, string> {
+  const map = new Map<string, string>();
+  brands.forEach((b, i) => map.set(b.id, BRAND_COLORS[i % BRAND_COLORS.length]));
+  return map;
+}
